@@ -40,3 +40,14 @@ const sessionMaker = require('./session');
 // middleWare
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Create domain
+app.post('/domains', async (req, res) => {
+  const { domain, apiKey, apiToken } = req.body;
+  try {
+    await database.createDomain(domain, apiKey, apiToken);
+    res.status(201).send('Domain created successfully.');
+  } catch (error) {
+    res.status(500).send('Error creating domain: ' + error);
+  }
+});

@@ -7,3 +7,13 @@ const connection = mysql.createConnection({
   password: 'password',
   database: 'db_scheme'
 });
+
+const createDomain = (domain, apiKey, apiToken) => {
+  const query = 'INSERT INTO domains (domain, api_key, api_token) VALUES (?, ?, ?)';
+  return new Promise((resolve, reject) => {
+    connection.query(query, [domain, apiKey, apiToken], (err, result) => {
+      if (err) reject(err);
+      resolve(result);
+    });
+  });
+};
