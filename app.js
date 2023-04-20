@@ -109,3 +109,14 @@ app.put('/domains/:id', async (req, res) => {
     res.status(500).send('Error updating domain: ' + error);
   }
 });
+
+// Delete domain
+app.delete('/domains/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await database.deleteDomain(id);
+    res.status(200).send('Domain deleted successfully.');
+  } catch (error) {
+    res.status(500).send('Error deleting domain: ' + error);
+  }
+});
