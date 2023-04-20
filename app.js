@@ -41,6 +41,19 @@ const sessionMaker = require('./session');
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Get domain
+app.get('/domains/:id', (req, res) => {
+  const id = req.params.id;
+  database.getDomain(id, (err, result) => {
+    if (err) {
+      console.error(`Error retrieving domain: ${err.message}`);
+      res.status(500).send({ error: 'Error retrieving domain' });
+    } else {
+      res.send(result);
+    }
+  });
+});
+
 // Create domain
 app.post('/domains', async (req, res) => {
   const { domain, apiKey, apiToken } = req.body;

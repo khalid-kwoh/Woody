@@ -74,3 +74,22 @@ const verifyUser = (id, password) => {
     });
   });
 }
+
+const getDomain = (id, callback) => {
+  connection.query('SELECT * FROM domains WHERE id = ?', [id], (error, results, fields) => {
+    if (error) {
+      return callback(error);
+    }
+    callback(null, results[0]);
+  });
+};
+
+const deleteDomain = (id) => {
+  const query = 'DELETE FROM domains WHERE id = ?';
+  return new Promise((resolve, reject) => {
+    connection.query(query, [id], (err, result) => {
+      if (err) reject(err);
+      resolve(result);
+    });
+  });
+};
