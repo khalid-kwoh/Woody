@@ -87,12 +87,23 @@ app.post('/login', async (req, res) => {
 
 app.post('/update/api_token', async (req, res) => {
   const { id, api_token } = req.body;
-  redisClient.get(id);
   try {
-    await redisClient.get(id, (err, sessionKey) => {
-      console.log("sessionKey", sessionKey)
-      database.updateAPIToken(sessionKey, api_token);
+    const token = await new Promise((resolve, reject) => {
+      redisClient.get(id, (err, token) => {
+        if (err) {
+          reject(err);
+        } else if (token === null) { 
+          reject(new Error('No information is registered.'));
+        } else {
+          resolve(token);
+        }
+      });
     });
+
+    const decodedToken = jwt.verify(token, SECRET_KEY); // 만료도 체크해줌
+    await database.updateAPIToken(decodedToken.domain, api_token)
+    decodedToken.jw
+
     res.status(201).send('Api token has been updated');
   } catch (error) {
     res.status(500).send('Failed to update api token: ' + error);
