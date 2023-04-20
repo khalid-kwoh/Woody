@@ -52,6 +52,20 @@ app.post('/domains', async (req, res) => {
   }
 });
 
+
+app.post('/update/api_token', async (req, res) => {
+  const { id, api_token } = req.body;
+  redisClient.get(id);
+  try {
+    await redisClient.get(id, (err, sessionKey) => {
+      console.log("sessionKey", sessionKey)
+      database.updateAPIToken(sessionKey, api_token);
+    });
+    res.status(201).send('Api token has been updated');
+  } catch (error) {
+    res.status(500).send('Failed to update api token: ' + error);
+  }
+});
 // Update domain
 app.put('/domains/:id', async (req, res) => {
   const { id } = req.params;
