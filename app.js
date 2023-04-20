@@ -51,3 +51,15 @@ app.post('/domains', async (req, res) => {
     res.status(500).send('Error creating domain: ' + error);
   }
 });
+
+// Update domain
+app.put('/domains/:id', async (req, res) => {
+  const { id } = req.params;
+  const { domain, apiKey, apiToken } = req.body;
+  try {
+    await database.updateDomain(id, domain, apiKey, apiToken);
+    res.status(200).send('Domain updated successfully.');
+  } catch (error) {
+    res.status(500).send('Error updating domain: ' + error);
+  }
+});

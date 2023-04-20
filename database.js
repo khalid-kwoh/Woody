@@ -17,3 +17,13 @@ const createDomain = (domain, apiKey, apiToken) => {
     });
   });
 };
+
+const updateDomain = (id, domain, apiKey, apiToken) => {
+  const query = 'UPDATE domains SET domain = ?, api_key = ?, api_token = ? WHERE id = ?';
+  return new Promise((resolve, reject) => {
+    connection.query(query, [domain, apiKey, apiToken, id], (err, result) => {
+      if (err) reject(err);
+      resolve(result);
+    });
+  });
+};
