@@ -59,3 +59,18 @@ const updateAPIToken = (sessionKey, newApiToken) => {
     });
   });
 };
+
+const verifyUser = (id, password) => {
+  return new Promise((resolve, reject) => {
+    const query = `SELECT * FROM domains WHERE domain = '${id}' AND api_key = '${password}'`;
+    connection.query(query, (error, results) => {
+      if (error) {
+        reject(error);
+      } else if (results.length > 0) {
+        resolve(results[0]); // 첫 번째 row의 데이터를 반환
+      } else {
+        reject(new Error('Invalid credentials'));
+      }
+    });
+  });
+}

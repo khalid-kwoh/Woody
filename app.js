@@ -52,6 +52,25 @@ app.post('/domains', async (req, res) => {
   }
 });
 
+// Login
+app.post('/login', async (req, res) => {
+  const { id, password } = req.body;
+  const payload = model.payload(Date.now(), id)
+  const options = model.JWTOptions('30m', 'khalid')
+  var jwtToken = ""
+  await jwt.sign(payload, SECRET_KEY, options, (err, token) => {
+    jwtToken = token
+  });
+  database.verifyUser(id, password, jwtToken)
+    .then((user) => {
+      // session_key를 반환하는 HTTP response
+      const { key } = res.status(200).json({ jwt: jwtToken });
+      redisClient.set(id, jwtToken);
+    })
+    .catch((error) => {
+      res.status(401).json({ message: error.message });
+    });
+});
 
 app.post('/update/api_token', async (req, res) => {
   const { id, api_token } = req.body;
