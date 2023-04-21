@@ -8,6 +8,7 @@ const model = require('./Model')
 // JWT
 const jwt = require('jsonwebtoken');
 const SECRET_KEY = 'MY_SECRET_KEY';
+
 // Redis
 const redis = require('redis');
 
@@ -19,16 +20,20 @@ const redisClient = redis.createClient({
   legacyMode: true
 });
 
+// Constant
+
+const constant = require('./Constant')
+
 redisClient.connect();
 
 // 연결 에러 처리
 redisClient.on('error', (error) => {
-  console.error('Error connecting to Redis:', error);
+  console.error(constant.redisConnectingError, error);
 });
 
 // 연결 성공 처리
 redisClient.on('connect', () => {
-  console.log('Connected to Redis successfully');
+  console.log(constant.redisConnectingSuccess);
 });
 
 const app = express();
@@ -46,8 +51,8 @@ app.get('/domains/:id', (req, res) => {
   const id = req.params.id;
   database.getDomain(id, (err, result) => {
     if (err) {
-      console.error(`Error retrieving domain: ${err.message}`);
-      res.status(500).send({ error: 'Error retrieving domain' });
+      console.error(constant.retreiveDomainError + ` ${err.message}`);
+      res.status(500).send({ error: constant.retreiveDomainError });
     } else {
       res.send(result);
     }
@@ -59,9 +64,9 @@ app.post('/domains', async (req, res) => {
   const { domain, apiKey, apiToken } = req.body;
   try {
     await database.createDomain(domain, apiKey, apiToken);
-    res.status(201).send('Domain created successfully.');
+    res.status(201).send(constant.domainCreated);
   } catch (error) {
-    res.status(500).send('Error creating domain: ' + error);
+    res.status(500).send(constant.creatingDomainError + error);
   }
 });
 
@@ -93,7 +98,7 @@ app.post('/update/api_token', async (req, res) => {
         if (err) {
           reject(err);
         } else if (token === null) { 
-          reject(new Error('No information is registered.'));
+          reject(new Error(constant.noInformation));
         } else {
           resolve(token);
         }
@@ -102,22 +107,22 @@ app.post('/update/api_token', async (req, res) => {
 
     const decodedToken = jwt.verify(token, SECRET_KEY); // 만료도 체크해줌
     await database.updateAPIToken(decodedToken.domain, api_token)
-    decodedToken.jw
 
-    res.status(201).send('Api token has been updated');
+    res.status(201).send(constant.APITokenUpdated);
   } catch (error) {
-    res.status(500).send('Failed to update api token: ' + error);
+    res.status(500).send(constant.APITokenUpdateFail + error);
   }
 });
+
 // Update domain
 app.put('/domains/:id', async (req, res) => {
   const { id } = req.params;
   const { domain, apiKey, apiToken } = req.body;
   try {
     await database.updateDomain(id, domain, apiKey, apiToken);
-    res.status(200).send('Domain updated successfully.');
+    res.status(200).send(constant.domainUpdated);
   } catch (error) {
-    res.status(500).send('Error updating domain: ' + error);
+    res.status(500).send(constant.UpdateDomainError + error);
   }
 });
 
@@ -126,9 +131,9 @@ app.delete('/domains/:id', async (req, res) => {
   const { id } = req.params;
   try {
     await database.deleteDomain(id);
-    res.status(200).send('Domain deleted successfully.');
+    res.status(200).send(constant.deleteDomain);
   } catch (error) {
-    res.status(500).send('Error deleting domain: ' + error);
+    res.status(500).send(constant.deleteDomainError + error);
   }
 });
 const PORT = process.env.PORT || 3000;app.listen(PORT, () => {  console.log(`Server is running on port ${PORT}`);});
