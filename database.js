@@ -29,51 +29,76 @@ const updateDomain = (id, domain, apiKey, apiToken) => {
   });
 };
 
-const updateAPIToken = (domain, newApiToken) => {
+const updateAPIToken = async (domain, newApiToken) => {
+  try {
+    const domainResults = await findDomain(domain);
+    validationDomain(domainResults)
+    return new Promise((resolve, reject) => {
+      const updateQuery = 'UPDATE domains SET api_token = ? WHERE domain = ?';
+      connection.query(updateQuery, [newApiToken, domain], (err, result) => {
+        if (err) reject(err);
+        resolve(result);
+      });
+    });
+  } catch (err) {
+    throw err;
+  }
+};
+
+const findDomain = (domain) => {
   return new Promise((resolve, reject) => {
-    // domains 테이블에서 session_key가 일치하는지 확인
-    const query = `SELECT * FROM domains WHERE domain = '${ domain }'`;
+    const query = `SELECT * FROM domains WHERE domain = ?`;
     connection.query(query, [domain], (err, results) => {
-      if (err) {
-        reject(err);
-      } else {
-        if (results.length === 0) {
-          reject('session_key does not match any record in domains table');
-        } else {
-          const updateQuery = 'UPDATE domains SET api_token = ? WHERE domain = ?';
-          connection.query(updateQuery, [newApiToken, domain], (err, result) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve(result);
-            }
-          });
-        }
-      }
+      if (err) reject(err);
+      resolve(results);
     });
   });
 };
 
-const verifyUser = (id, password) => {
+const validationDomain = (domain) => {
+  if (domain.length === 0) {
+    throw new Error(constant.noInformation)
+  }
+};
+
+
+const verifyUser = async (id, password) => {
+  try {
+    const userData = await getUserById(id);
+    const validUser = validateCredentials(userData, password);
+    return validUser;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const getUserById = (id) => {
   return new Promise((resolve, reject) => {
-    const query = `SELECT * FROM domains WHERE domain = '${id}' AND api_key = '${password}'`;
-    connection.query(query, (error, results) => {
-      if (error) {
-        reject(error);
-      } else if (results.length > 0) {
-        resolve(results[0]); // 첫 번째 row의 데이터를 반환
-      } else {
-        reject(new Error('Invalid credentials'));
-      }
+    const query = `SELECT * FROM domains WHERE domain = ?`;
+    connection.query(query, [id], (error, results) => {
+      if (error) reject(error);
+      resolve(results);
     });
   });
-}
+};
+
+const validateCredentials = (userData, password) => {
+  if (userData.length === 0) {
+    throw new Error('Invalid credentials');
+  }
+
+  const user = userData[0];
+
+  if (user.api_key !== password) {
+    throw new Error('Invalid credentials');
+  }
+
+  return user;
+};
 
 const getDomain = (id, callback) => {
   connection.query('SELECT * FROM domains WHERE id = ?', [id], (error, results, fields) => {
-    if (error) {
-      return callback(error);
-    }
+    if (error) callback(error);
     callback(null, results[0]);
   });
 };
